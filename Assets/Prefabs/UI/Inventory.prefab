@@ -489,7 +489,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 278600874287139778}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2569570685808139010}
+        m_TargetAssemblyTypeName: InventoryUI, Assembly-CSharp
+        m_MethodName: CloseAttachedStorage
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &3945700685493787307
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,7 +674,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 20
+  m_ScrollSensitivity: 30
   m_Viewport: {fileID: 6343849198495857276}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 603234989215542056}
@@ -916,8 +928,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_AttachedStorage: {fileID: 0}
   m_SlotsParent: {fileID: 7285080190169814774}
-  m_UnlockedSlotPrefab: {fileID: 47473669372764178, guid: b924c70326215104c8221278c81bebec, type: 3}
-  m_LockedSlotPrefab: {fileID: 5148631411293737825, guid: e4d1dadb9943db84b9f0a7fa2624b131, type: 3}
+  m_SlotPrefab: {fileID: 5148631411293737825, guid: e4d1dadb9943db84b9f0a7fa2624b131, type: 3}
+  m_SlotPoolCapacity: 81
 --- !u!1 &7997351360496267074
 GameObject:
   m_ObjectHideFlags: 0
