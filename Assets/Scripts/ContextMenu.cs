@@ -1,66 +1,62 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ContextMenu : MonoBehaviour
 {
-    private readonly Dictionary<string, Button> m_OptionButtons = new();
+    public static ContextMenu Current => s_Current;
+    private static ContextMenu s_Current;
+
+    [SerializeField] private GameObject m_OptionPrefab;
+    [SerializeField] private int m_OptionPoolCapacity = 6;
+
+    private readonly List<ContextOption> m_Options = new();
 
     private void Start()
     {
-        m_OptionButtons["Equip"] = transform.Find("Equip").GetComponent<Button>();
-        m_OptionButtons["Drop"] = transform.Find("Drop").GetComponent<Button>();
-        m_OptionButtons["Sell"] = transform.Find("Sell").GetComponent<Button>();
-        m_OptionButtons["Destroy"] = transform.Find("Destroy").GetComponent<Button>();
+        if (!s_Current) s_Current = this;
+
+        gameObject.SetActive(false);
+
+        m_Options.Capacity = m_OptionPoolCapacity;
+        for (int i = 0; i < m_OptionPoolCapacity; i++)
+        {
+            m_Options.Add(Instantiate(m_OptionPrefab, transform).GetComponent<ContextOption>());
+            m_Options[i].gameObject.SetActive(false);
+        }
     }
 
-    private void Show(Vector2 position, IContext context)
+    public void Show(Vector2 position, IContext context)
     {
-        if (context is IEquipable equipable)
+        ContextOptionConfiguration[] optionConfigs = context.GetOptionConfigurations();
+        if (optionConfigs == null || optionConfigs.Length <= 0)
+            return;
+
+        int i = 0;
+        foreach (var config in optionConfigs)
         {
-            m_OptionButtons["Equip"].onClick.AddListener(() => equipable.Equip());
+            m_Options[i].SetOption(config);
+            m_Options[i].gameObject.SetActive(true);
+            i++;
         }
-        if (context is IDroppable droppable)
+
+        for (; i < m_Options.Count; i++)
         {
-            m_OptionButtons["Drop"].onClick.AddListener(() => droppable.Drop());
+            m_Options[i].gameObject.SetActive(false);
         }
-        if (context is ISellable sellable)
-        {
-            m_OptionButtons["Sell"].onClick.AddListener(() => sellable.Sell());
-        }
-        if (context is IDestructible destructible)
-        {
-            m_OptionButtons["Destroy"].onClick.AddListener(() => destructible.Destroy());
-        }
+
+        // TODO(Pedro): Reposition menu based on position on the screen
+        transform.position = position;
+        gameObject.SetActive(true);
     }
 
-    private void Hide()
+    public void Hide()
     {
-        m_OptionButtons["Equip"]?.onClick.RemoveAllListeners();
-        m_OptionButtons["Drop"]?.onClick.RemoveAllListeners();
-        m_OptionButtons["Sell"]?.onClick.RemoveAllListeners();
-        m_OptionButtons["Destroy"]?.onClick.RemoveAllListeners();
+        gameObject.SetActive(false);
+
     }
 }
 
-public interface IContext { }
-
-public interface IEquipable
+public interface IContext 
 {
-    public void Equip();
-}
-
-public interface IDroppable
-{
-    public void Drop();
-}
-
-public interface ISellable
-{
-    public void Sell();
-}
-
-public interface IDestructible
-{
-    public void Destroy();
+    public ContextOptionConfiguration[] GetOptionConfigurations();
 }
