@@ -16,7 +16,10 @@ public class ContextOption : TextMeshProUGUI, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        m_ClickCallback?.Invoke();
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            m_ClickCallback?.Invoke();
+        }
     }
 }
 

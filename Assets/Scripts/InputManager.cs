@@ -13,12 +13,14 @@ public class InputManager : MonoBehaviour
             pointerEventData.position = Input.mousePosition;
             List<RaycastResult> raycastResults = new();
             currentEventSystem.RaycastAll(pointerEventData, raycastResults);
+            // GetComponent allocates even if the component is not found,
+            // so we use TryGetComponent instead
             if (raycastResults.Count > 0)
             {
-                IContext context = raycastResults[0].gameObject.GetComponent<IContext>();
-                if (context != null )
+                if (raycastResults[0].gameObject.TryGetComponent<IContext>(out var context))
                 {
                     ContextMenu.Current.Show(pointerEventData.position, context);
+                    currentEventSystem.SetSelectedGameObject(ContextMenu.Current.gameObject);
                 }
             }
         }
