@@ -17,13 +17,20 @@ public class InventoryUI : MonoBehaviour
         get { return m_AttachedStorage; }
         set 
         {
+            if (m_AttachedStorage == value) return;
             if (m_AttachedStorage)
             {
-                
+                StorageDettached();
             }
-            m_AttachedStorage = value; 
+            m_AttachedStorage = value;
+            if (m_AttachedStorage)
+            {
+                StorageAttached();
+            }
         }
     }
+
+    private bool m_IsDirty = false;
 
     private Canvas m_InventoryCanvas;
 
@@ -33,10 +40,16 @@ public class InventoryUI : MonoBehaviour
         if (m_InventoryCanvas.enabled)
             m_InventoryCanvas.enabled = false;
 
-        m_AttachedStorage.StorageOpened += OnStorageOpened;
-        m_AttachedStorage.StorageClosed += OnStorageClosed;
-
         FillSlotsPool();
+
+        if (!m_AttachedStorage) return;
+
+        StorageAttached();
+    }
+
+    private void LateUpdate()
+    {
+        if (!m_IsDirty) return;
 
         int totalSlotCount = m_AttachedStorage.TotalSlotCount;
         int unlockedSlotCount = m_AttachedStorage.UnlockedSlotCount;
@@ -44,12 +57,16 @@ public class InventoryUI : MonoBehaviour
         for (; i < unlockedSlotCount; i++)
         {
             m_SlotPool[i].Locked = false;
+            m_SlotPool[i].ItemIcon = ItemDatabase.Instance.GetItemData(m_AttachedStorage.Stacks[i].TypeId).Icon;
+            m_SlotPool[i].ItemCount = m_AttachedStorage.Stacks[i].Count;
         }
         for (; i < totalSlotCount; i++)
         {
             m_SlotPool[i].Locked = true;
         }
-        
+
+        m_IsDirty = false;
+
     }
 
     public void CloseAttachedStorage()
@@ -66,6 +83,24 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    private void StorageAttached()
+    {
+        m_AttachedStorage.Opened += OnStorageOpened;
+        m_AttachedStorage.Closed += OnStorageClosed;
+        m_AttachedStorage.Changed += OnStorageChanged;
+
+        m_IsDirty = true;
+    }
+
+    private void StorageDettached()
+    {
+        m_AttachedStorage.Opened -= OnStorageOpened;
+        m_AttachedStorage.Closed -= OnStorageClosed;
+        m_AttachedStorage.Changed -= OnStorageChanged;
+
+        m_IsDirty = false;
+    }
+
     private void OnStorageOpened()
     {
         m_InventoryCanvas.enabled = true;
@@ -74,5 +109,10 @@ public class InventoryUI : MonoBehaviour
     private void OnStorageClosed()
     {
         m_InventoryCanvas.enabled = false;
+    }
+
+    private void OnStorageChanged()
+    {
+        m_IsDirty = true;
     }
 }

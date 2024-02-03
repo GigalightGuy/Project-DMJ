@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class SlotUI : MonoBehaviour, IContext
@@ -7,6 +8,9 @@ public class SlotUI : MonoBehaviour, IContext
     [SerializeField] private Color m_LockedColor = Color.grey;
 
     private Image m_BackgroundImage;
+
+    [SerializeField] private Image m_ItemIconImage;
+    [SerializeField] private TextMeshProUGUI m_CountDisplay;
 
     private bool m_Locked = true;
 
@@ -22,6 +26,16 @@ public class SlotUI : MonoBehaviour, IContext
             }
         }
     }
+
+    public Sprite ItemIcon 
+    { 
+        set 
+        { 
+            m_ItemIconImage.sprite = value;
+            m_ItemIconImage.color = value ? new Color(1f, 1f, 1f, 1f) : new Color(1f, 1f, 1f, 0f);
+        } 
+    }
+    public int ItemCount { set { m_CountDisplay.text = value > 1 ? value.ToString() : ""; } }
 
     private ContextOptionConfiguration[] m_TestContextOptions;
     private ContextOptionConfiguration[] m_LockedSlotContextOptions;

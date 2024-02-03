@@ -12,6 +12,7 @@ public class ContextMenu : MonoBehaviour, ISelectHandler, IDeselectHandler
 
     [SerializeField] private GameObject m_OptionPrefab;
     [SerializeField] private int m_OptionPoolCapacity = 6;
+    [SerializeField] private Vector2 m_Offset = new Vector2(10.0f, 10.0f);
 
     private readonly List<ContextOption> m_Options = new();
 
@@ -33,10 +34,7 @@ public class ContextMenu : MonoBehaviour, ISelectHandler, IDeselectHandler
     // so Unity recognizes this as a selectable component
     public void OnSelect(BaseEventData eventData) { }
 
-    public void OnDeselect(BaseEventData eventData)
-    {
-        Hide();
-    }
+    public void OnDeselect(BaseEventData eventData) { Hide(); }
 
     public void Show(Vector2 position, IContext context)
     {
@@ -74,14 +72,16 @@ public class ContextMenu : MonoBehaviour, ISelectHandler, IDeselectHandler
 
         // TODO(Pedro): Do these calculations in canvas normalized dimensions
         Vector2 menuSize = rectTransform.sizeDelta;
-        position += 0.5f * new Vector2(menuSize.x, -menuSize.y);
-        if (position.x + menuSize.x > Screen.width)
+        Vector2 positionDelta = 0.5f * new Vector2(menuSize.x, -menuSize.y);
+        positionDelta += new Vector2(m_Offset.x, -m_Offset.y);
+        position += positionDelta;
+        if (position.x + positionDelta.x > Screen.width)
         {
-            position.x -= menuSize.x;
+            position.x -= 2f * positionDelta.x;
         }
-        if (position.y - menuSize.y < 0.0f)
+        if (position.y + positionDelta.y < 0f)
         {
-            position.y += menuSize.y;
+            position.y -= 2f * positionDelta.y;
         }
         transform.position = position;
     }
