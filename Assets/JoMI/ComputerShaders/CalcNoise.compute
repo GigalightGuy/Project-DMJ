@@ -1,0 +1,114 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel calcNoise
+
+RWStructuredBuffer<float> noisePoints;
+
+
+RWStructuredBuffer<float2> gradients;
+
+
+float2 boundsSize;
+int nPointsX;
+int nPointsY;
+int nPointsZ;
+float2 centre;
+float spacing;
+float noiseRes;
+float aux;
+
+uint indexFromCoord(uint x, uint z)
+{
+    return (z * nPointsX + x);
+}
+
+
+
+
+float2 grad(float v)
+{
+    
+    return gradients[(v * 16) % 256];
+}
+
+float fade(float t)
+{
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+float lerpp(float2 a, float2 b, float t)
+{
+    return ((1 - t) * a.x) + (t * b.x);
+}
+
+float noise2D(float x, float y)
+{
+     // get our position within the unit space.
+    const float _x = floor(x);
+    const float _y = floor(y);
+    x = x - _x;
+    y = y - _y;
+  
+  // Get the x and y cooridnates of the left and right, top and bottom of the cell
+  // Taking the modulo of these by nUnique gives us noise that repeats every nUnique units.
+    const float _x0 = _x % aux;
+    const float _y0 = _y % aux;
+    const float _x1 = (_x + 1) % aux;
+    const float _y1 = (_y + 1) % aux;
+
+    //perm = Array(16)[3, 2, 13, 11, 1, 5, 14, 9, 10, 4, 6, 8, 12, 15, 0, 7];
+    
+  // Get our gradient vectors
+    const float2 g00 = grad(_x0 + _y0);
+    const float2 g10 = grad(_x1 + _y0);
+    const float2 g01 = grad(_x0 + _y1);
+    const float2 g11 = grad(_x1 + _y1);
+    
+  // Get the displacement between a given point and the four corners of the cell
+    const float2 d00 = float2(x, y);
+    const float2 d10 = float2(x - 1, y);
+    const float2 d01 = float2(x, y - 1);
+    const float2 d11 = float2(x - 1, y - 1);
+
+  // Compute the influence of each corner on a given point.
+    const float in00 = dot(g00, d00);
+    const float in10 = dot(g10, d10);
+    const float in01 = dot(g01, d01);
+    const float in11 = dot(g11, d11);
+
+  // Finally interpolate betweeen our influences. First on the x axis for the top and bottom pairs of points
+    const float l1 = lerp(in00, in10, fade(x));
+    const float l2 = lerp(in01, in11, fade(x));
+  // Then on the y axis to fade from left to right.
+    return (lerp(l1, l2, fade(y)) + 0.5);
+}
+
+
+static const int numThreads = 8;
+
+
+[numthreads(numThreads, 1, numThreads)]
+void calcNoise (uint3 id : SV_DispatchThreadID)
+{
+    
+    if (id.x >= nPointsX || id.z >= nPointsZ)
+    {
+        return;
+    }
+    
+    
+    uint noiseIndex = indexFromCoord(id.x, id.z);
+    
+      
+  
+    
+    float2 pos = centre + float2(id.xz) * spacing - boundsSize / 2;
+    
+    
+   
+    float noiseValue = noise2D(
+                pos.x / (boundsSize.x * noiseRes),
+                pos.y / (boundsSize.y * noiseRes));
+    
+    
+    noisePoints[noiseIndex] = noiseValue ;
+}
