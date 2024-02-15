@@ -30,8 +30,6 @@ public class ChunkMesh : MonoBehaviour, IChunk
         _ctx.CarvingCS.SetFloat("Spacing", _ctx.TerrainSO.Spacing);
         _ctx.CarvingCS.SetVector("halfBounds", _ctx.TerrainSO.BoundsPointsSize / 2);
 
-
-
         _numThreadsPerAxis = new(
             Mathf.CeilToInt(_ctx.TerrainSO.NumPointsPerAxis.x / (float)threadGroupSize),
             Mathf.CeilToInt(_ctx.TerrainSO.NumPointsPerAxis.y / (float)threadGroupSize),
@@ -42,8 +40,6 @@ public class ChunkMesh : MonoBehaviour, IChunk
 
     public void DrawChunk( )
     {
-
-        #region building mesh with marchingcubes.compute
         _ctx.TriangleBuffer.SetCounterValue(0);
         _ctx.MarchingCubesCS.SetBuffer(0, "points", _ctx.ChunkLocalPointsBuffer);
         _ctx.MarchingCubesCS.SetBuffer(0, "densities", _densitiesBuffer);
@@ -57,8 +53,6 @@ public class ChunkMesh : MonoBehaviour, IChunk
 
         _ctx.MarchingCubesCS.Dispatch(0, _numThreadsPerAxis.x, _numThreadsPerAxis.y, _numThreadsPerAxis.z);
 
-        // Vector4[] aux = new Vector4[7 * 7 * 7];
-        // chunkPointsBuffer.GetData(aux, 0, 0, chunkPointsBuffer.count);
 
         // Get number of triangles in the triangle buffer
         ComputeBuffer.CopyCount(_ctx.TriangleBuffer, _ctx.TriCountBuffer, 0);
@@ -71,7 +65,6 @@ public class ChunkMesh : MonoBehaviour, IChunk
         _ctx.TriangleBuffer.GetData(tris, 0, 0, numTris);
 
      
-
         var vertices = new Vector3[numTris * 3];
         var meshTriangles = new int[numTris * 3];
 
@@ -87,7 +80,6 @@ public class ChunkMesh : MonoBehaviour, IChunk
         _meshFilter.mesh.triangles = meshTriangles;
         _meshFilter.mesh.RecalculateNormals();
         _meshCollider.sharedMesh =  _meshFilter.sharedMesh;
-        #endregion
     }
 
 
@@ -115,21 +107,17 @@ public class ChunkMesh : MonoBehaviour, IChunk
         public Vector3 b;
         public Vector3 c;
 
-        public Vector3 this[int i]
+        public readonly Vector3 this[int i]
         {
             get
             {
-                switch (i)
+                return i switch
                 {
-                    case 0:
-                        return a;
-                    case 1:
-                        return b;
-                    default:
-                        return c;
-                }
+                    0 => a,
+                    1 => b,
+                    _ => c,
+                };
             }
         }
     }
-
 }

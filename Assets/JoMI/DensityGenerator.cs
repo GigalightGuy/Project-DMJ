@@ -72,7 +72,7 @@ public class DensityGenerator : MonoBehaviour
 
 
         _noiseShader.SetBuffer(0, "noisePoints", noisePoints);
-        _noiseShader.Dispatch(0, _numThreadsPerAxis.x,1, _numThreadsPerAxis.z);
+        _noiseShader.Dispatch(0, _numThreadsPerAxis.x, 1, _numThreadsPerAxis.z);
         
         _densityShader.SetBuffer(0, "densities", _densities);
         _densityShader.SetBuffer(0, "chunkPoints", chunkLocalPointsBuffer);

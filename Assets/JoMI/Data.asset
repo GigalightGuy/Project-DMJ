@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fb0fbcdaf5b6b94ab638925580e072f, type: 3}
   m_Name: Data
   m_EditorClassIdentifier: 
-  NumPointsPerAxis: {x: 32, y: 32, z: 32}
+  NumPointsPerAxis: {x: 32, y: 64, z: 32}
   Spacing: 1
   noiseResolution: 5.1
   aux: 5
