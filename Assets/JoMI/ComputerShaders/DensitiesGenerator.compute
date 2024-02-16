@@ -1,0 +1,194 @@
+#pragma kernel calcNoise
+#pragma kernel FinalDensity
+#pragma kernel Carving
+#pragma kernel SmoothCarving
+
+static const int numThreads = 8;
+
+
+//buffers 
+
+RWStructuredBuffer<float2> gradients; 
+
+RWStructuredBuffer<float> noisePoints;
+
+RWStructuredBuffer<float3> chunkPoints;
+
+RWStructuredBuffer<float> densities;
+
+//ComputeShader Variables (Shared by all kernels)
+
+uint nPointsX;
+uint nPointsY;
+uint nPointsZ;
+
+float spacing;
+
+float3 voxelBoundsSize;
+float3 halfPointsBoundsSize;
+float3 centre;
+
+
+//specific to Calcnoise Kernel
+float noiseRes;
+float aux;
+
+//specific to Carving Kernel
+
+float3 carvingPosition;
+float carvingRange;
+int addRemove;
+
+
+//general methods
+
+int indexFromCoord(uint x, uint y, uint z)
+{
+    return z * nPointsY * nPointsX + y * nPointsX + x;
+}
+
+int indexFromCoord(uint x, uint z)
+{
+    return z * nPointsX + x;
+}
+
+//--- calcNoise kernel region ---
+
+float2 grad(float v)
+{
+    return gradients[(v * 16) % 256];
+}
+
+float fade(float t)
+{
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+float lerpp(float2 a, float2 b, float t)
+{
+    return ((1 - t) * a.x) + (t * b.x);
+}
+
+float noise2D(float x, float y) //https://observablehq.com/@bensimonds/perlin-noise
+{
+     // get our position within the unit space.
+    const float _x = floor(x);
+    const float _y = floor(y);
+    x = x - _x;
+    y = y - _y;
+  
+  // Get the x and y cooridnates of the left and right, top and bottom of the cell
+  // Taking the modulo of these by nUnique gives us noise that repeats every nUnique units.
+    const float _x0 = _x % aux;
+    const float _y0 = _y % aux;
+    const float _x1 = (_x + 1) % aux;
+    const float _y1 = (_y + 1) % aux;
+
+    //perm = Array(16)[3, 2, 13, 11, 1, 5, 14, 9, 10, 4, 6, 8, 12, 15, 0, 7];
+    
+  // Get our gradient vectors
+    const float2 g00 = grad(_x0 + _y0);
+    const float2 g10 = grad(_x1 + _y0);
+    const float2 g01 = grad(_x0 + _y1);
+    const float2 g11 = grad(_x1 + _y1);
+    
+  // Get the displacement between a given point and the four corners of the cell
+    const float2 d00 = float2(x, y);
+    const float2 d10 = float2(x - 1, y);
+    const float2 d01 = float2(x, y - 1);
+    const float2 d11 = float2(x - 1, y - 1);
+
+  // Compute the influence of each corner on a given point.
+    const float in00 = dot(g00, d00);
+    const float in10 = dot(g10, d10);
+    const float in01 = dot(g01, d01);
+    const float in11 = dot(g11, d11);
+
+  // Finally interpolate betweeen our influences. First on the x axis for the top and bottom pairs of points
+    const float l1 = lerp(in00, in10, fade(x));
+    const float l2 = lerp(in01, in11, fade(x));
+  // Then on the y axis to fade from left to right.
+    return (lerp(l1, l2, fade(y)) + 0.5);
+}
+
+
+[numthreads(numThreads, 1, numThreads)]
+void calcNoise(uint3 id : SV_DispatchThreadID) {
+    
+    if (id.x >= nPointsX || id.z >= nPointsZ) return;
+   
+    float2 pos = centre.xz + float2(id.xz) * spacing - voxelBoundsSize.xz / 2;
+    
+    float noiseValue = noise2D(
+                pos.x / (voxelBoundsSize.x * noiseRes),
+                pos.y / (voxelBoundsSize.x * noiseRes));
+    
+    uint noiseIndex = indexFromCoord(id.x, id.z);
+    noisePoints[noiseIndex] = noiseValue;
+}
+
+//--- End calcNoise region ---
+
+
+//--- FinalDensity kernel region ---
+
+[numthreads(numThreads, numThreads, numThreads)]
+void FinalDensity(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= nPointsX || id.y >= nPointsY || id.z >= nPointsZ) return;
+ 
+    int index = indexFromCoord(id.x, id.y, id.z);
+    float3 pos = centre.xyz + chunkPoints[index].xyz;
+    
+    float density = 0;
+    int noiseIndex = indexFromCoord(id.x, id.z);
+    
+    if (noisePoints[noiseIndex] > (float) id.y / (float) nPointsY) 
+        density = 1;
+    else 
+        density = -1;
+    
+    densities[index] = density;
+}
+
+//--- End FinalDensity region ---
+
+
+
+//--- Carving kernel region ---
+
+[numthreads(numThreads, numThreads, numThreads)]
+void Carving(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= nPointsX || id.y >= nPointsY || id.z >= nPointsZ) return;
+    
+    if (distance(float3(id.xyz) * spacing - halfPointsBoundsSize, carvingPosition) > carvingRange)
+        return;
+ 
+    int index = indexFromCoord(id.x, id.y, id.z);
+    densities[index] = addRemove;
+  
+ 
+}
+
+//--- End Carving region ---
+
+//--- SmoothCarving kernel region ---
+
+
+[numthreads(numThreads, numThreads, numThreads)]
+void SmoothCarving(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= nPointsX || id.y >= nPointsY || id.z >= nPointsZ) 
+        return;
+    
+    float distanceToCarvingPosition = distance(float3(id.xyz) * spacing - halfPointsBoundsSize, carvingPosition);
+    if (distanceToCarvingPosition > carvingRange) 
+        return;
+ 
+    int index = indexFromCoord(id.x, id.y, id.z);
+    densities[index] = (float) addRemove *(distanceToCarvingPosition / carvingRange);
+
+}
+
+//--- End SmoothCarving region ---

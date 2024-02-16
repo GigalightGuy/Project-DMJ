@@ -1,90 +1,101 @@
-
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
-public class DensityGenerator : MonoBehaviour
+namespace Terrain.MarchingCubes
 {
-    [SerializeField] MCTerrainSO _terrainSO;
-    const int threadGroupSize = 8;
-    public ComputeShader _densityShader;
-    public ComputeShader _noiseShader;
-
-    ComputeBuffer _gradients;
-
-    Vector3 _boundsSize;
-
-
-    private static Vector2 GetRandomDirection()
+    public class DensityGenerator : MonoBehaviour
     {
-        return new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)).normalized;
-    }
+        [SerializeField] MCTerrainSO _terrainSO;
+        const int threadGroupSize = 8;
+        public ComputeShader _densityShader;
 
-    Vector3Int _numThreadsPerAxis;
+        ComputeBuffer _gradients;
 
-    public void SetUpGradientsInformation()
-    {
-        _gradients?.Dispose();
-        _gradients = new(256, sizeof(float) * 2);
-        _gradients.SetData(Enumerable.Range(0, 256).Select((i) => GetRandomDirection()).ToArray());
-        _densityShader.SetBuffer(0, "gradients", _gradients);
-        _noiseShader.SetBuffer(0, "gradients", _gradients);
+        Vector3 _boundsSize;
 
-       
-    }
-   
-    public void SetComputeShaderDefaultParameters() {
+        private static Vector2 GetRandomDirection()
+        {
+            return new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)).normalized;
+        }
 
-        _boundsSize = _terrainSO.BoundsSize;
-        _densityShader.SetVector("boundsSize", new Vector4(_boundsSize.x, _boundsSize.y, _boundsSize.z));
-        _densityShader.SetFloat("spacing", _terrainSO.Spacing);
-        _densityShader.SetFloat("noiseRes", _terrainSO.noiseResolution);
-        _densityShader.SetFloat("aux", _terrainSO.aux);
-        _densityShader.SetInt("nPointsX", _terrainSO.NumPointsPerAxis.x);
-        _densityShader.SetInt("nPointsY", _terrainSO.NumPointsPerAxis.y);
-        _densityShader.SetInt("nPointsZ", _terrainSO.NumPointsPerAxis.z);
+        Vector3Int _numThreadsPerAxis;
 
-        _noiseShader.SetInt("nPointsX", _terrainSO.NumPointsPerAxis.x);
-        _noiseShader.SetInt("nPointsY", _terrainSO.NumPointsPerAxis.y);
-        _noiseShader.SetInt("nPointsZ", _terrainSO.NumPointsPerAxis.z);
-        _noiseShader.SetVector("boundsSize", new Vector2(_boundsSize.x,  _boundsSize.z));
-        _noiseShader.SetFloat("spacing", _terrainSO.Spacing);
-        _noiseShader.SetFloat("noiseRes", _terrainSO.noiseResolution);
-        _noiseShader.SetFloat("aux", _terrainSO.aux);
-    }
+        public void SetUpGradientsInformation() {
+            _gradients?.Dispose();
+            _gradients = new(256, sizeof(float) * 2);
+            _gradients.SetData(Enumerable.Range(0, 256).Select((i) => GetRandomDirection()).ToArray());
+            _densityShader.SetBuffer(0, "gradients", _gradients);
+        }
 
-    public ComputeBuffer Generate(ComputeBuffer _densities, ComputeBuffer chunkLocalPointsBuffer, ComputeBuffer noisePoints , Vector3Int chunkCoords)
-    {
+        public void SetComputeShaderDefaultParameters(ComputeBuffer chunkLocalPointsBuffer)
+        {
+            _densityShader.SetInt("nPointsX", _terrainSO.NumPointsPerAxis.x);
+            _densityShader.SetInt("nPointsY", _terrainSO.NumPointsPerAxis.y);
+            _densityShader.SetInt("nPointsZ", _terrainSO.NumPointsPerAxis.z);
 
-        SetComputeShaderDefaultParameters();
+            _boundsSize = _terrainSO.BoundsSize;
+            _densityShader.SetVector("voxelBoundsSize", new Vector4(_boundsSize.x, _boundsSize.y, _boundsSize.z));
+            _densityShader.SetVector("halfPointsBoundsSize", _terrainSO.BoundsPointsSize / 2);
+            _densityShader.SetFloat("spacing", _terrainSO.Spacing);
 
-        _numThreadsPerAxis = new(
-            Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.x / (float)threadGroupSize),
-            Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.y / (float)threadGroupSize),
-            Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.z / (float)threadGroupSize)
-            );
-
-        _densityShader.SetInts("chunkCoords", new int[] { chunkCoords.x, chunkCoords.y, chunkCoords.z });
-        _densityShader.SetVector("centre", new Vector4(_boundsSize.x * chunkCoords.x, _boundsSize.y * chunkCoords.y, _boundsSize.z * chunkCoords.z));
-        
-        _noiseShader.SetVector("centre", new Vector2(_boundsSize.x * chunkCoords.x,  _boundsSize.z * chunkCoords.z));
+            _densityShader.SetFloat("noiseRes", _terrainSO.noiseResolution);
+            _densityShader.SetFloat("aux", _terrainSO.aux);
 
 
+            _densityShader.SetBuffer(2, "chunkPoints",  chunkLocalPointsBuffer);
+            _densityShader.SetBuffer(3, "chunkPoints", chunkLocalPointsBuffer);
 
-        _noiseShader.SetBuffer(0, "noisePoints", noisePoints);
-        _noiseShader.Dispatch(0, _numThreadsPerAxis.x, 1, _numThreadsPerAxis.z);
-        
-        _densityShader.SetBuffer(0, "densities", _densities);
-        _densityShader.SetBuffer(0, "chunkPoints", chunkLocalPointsBuffer);
-        _densityShader.SetBuffer(0, "noisePoints", noisePoints);
-        _densityShader.Dispatch(0, _numThreadsPerAxis.x, _numThreadsPerAxis.y, _numThreadsPerAxis.z);
+            _numThreadsPerAxis = new(
+                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.x / (float)threadGroupSize),
+                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.y / (float)threadGroupSize),
+                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.z / (float)threadGroupSize)
+                );
 
-   
+        }
 
-        //float[] aux2 = new float[7 * 7];
-        //noisePoints.GetData(aux2, 0, 0, noisePoints.count);
+        public ComputeBuffer Generate(ComputeBuffer _densities, ComputeBuffer chunkLocalPointsBuffer, ComputeBuffer noisePoints, Vector3Int chunkCoords)
+        {
+            _densityShader.SetInts("chunkCoords", new int[] { chunkCoords.x, chunkCoords.y, chunkCoords.z });
+            _densityShader.SetVector("centre", new Vector4(_boundsSize.x * chunkCoords.x, _boundsSize.y * chunkCoords.y, _boundsSize.z * chunkCoords.z));
 
 
-        return _densities;
+
+            _densityShader.SetBuffer(0, "noisePoints", noisePoints);
+            _densityShader.Dispatch(0, _numThreadsPerAxis.x, 1, _numThreadsPerAxis.z);
+
+            _densityShader.SetBuffer(1, "densities", _densities);
+            _densityShader.SetBuffer(1, "chunkPoints", chunkLocalPointsBuffer);
+            _densityShader.SetBuffer(1, "noisePoints", noisePoints);
+            _densityShader.Dispatch(1, _numThreadsPerAxis.x, _numThreadsPerAxis.y, _numThreadsPerAxis.z);
+
+
+            return _densities;
+        }
+
+        public void Carve(ComputeBuffer densitiesBuffer, Vector3 carvingPoint,float carvingRange,int value, bool smooth)
+        {
+            _densityShader.SetVector("carvingPosition", carvingPoint);
+            _densityShader.SetFloat("carvingRange", carvingRange);
+            _densityShader.SetInt("addRemove", value);
+            if (smooth)
+            {
+                _densityShader.SetBuffer(3, "densities", densitiesBuffer);
+                _densityShader.Dispatch(3, _numThreadsPerAxis.x, _numThreadsPerAxis.y, _numThreadsPerAxis.z);
+            }
+            else
+            {
+                _densityShader.SetBuffer(2, "densities", densitiesBuffer);
+                _densityShader.Dispatch(2, _numThreadsPerAxis.x, _numThreadsPerAxis.y, _numThreadsPerAxis.z);
+            }
+        }
+
+
+        private void OnDisable()
+        {
+            _gradients.Release();
+        }
+
     }
 }

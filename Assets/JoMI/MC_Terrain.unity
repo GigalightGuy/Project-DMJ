@@ -802,8 +802,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _terrainSO: {fileID: 11400000, guid: 184fba9efc042cd49a1bd05ae0f76c3a, type: 2}
-  _densityShader: {fileID: 7200000, guid: e781356ab50ca5743949e8e93ef0cab6, type: 3}
-  _noiseShader: {fileID: 7200000, guid: 9f324ae5104c23042b99664e71bc375a, type: 3}
+  _densityShader: {fileID: 7200000, guid: 445b804a4bdee2041884baa31b09058c, type: 3}
 --- !u!1 &1265968859
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,7 +960,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1641791272}
   - component: {fileID: 1641791271}
-  - component: {fileID: 1641791270}
   - component: {fileID: 1641791273}
   m_Layer: 0
   m_Name: MiniCamera
@@ -970,14 +968,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &1641791270
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1641791269}
-  m_Enabled: 1
 --- !u!20 &1641791271
 Camera:
   m_ObjectHideFlags: 0

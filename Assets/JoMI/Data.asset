@@ -15,6 +15,6 @@ MonoBehaviour:
   NumPointsPerAxis: {x: 32, y: 64, z: 32}
   Spacing: 1
   noiseResolution: 5.1
-  aux: 5
-  IsoLevel: 1
-  NumChunksPerAxis: {x: 0, y: 0, z: 0}
+  aux: 2
+  IsoLevel: 0
+  NumChunksPerAxis: {x: 8, y: 1, z: 8}

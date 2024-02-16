@@ -13,7 +13,7 @@ public class MCTerrainSO : ScriptableObject
     public float noiseResolution;
     public float aux;
 
-   [Range(-5, 5)] public float IsoLevel;
+   [Range(-1, 1)] public float IsoLevel;
 
     public Vector3Int NumChunksPerAxis;
 

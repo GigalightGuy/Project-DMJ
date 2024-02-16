@@ -1,52 +1,55 @@
 using System.Collections;
 using UnityEngine;
 
-public class ModifyTerrain : MonoBehaviour
+namespace Terrain.MarchingCubes
 {
-    [SerializeField] private Camera _mainCamera;
-
-
-    void Start()
+    public class ModifyTerrain : MonoBehaviour
     {
-        _mainCamera = GetComponent<Camera>();
-        StartCoroutine(checkCarving());
-    }
+        [SerializeField] private Camera _mainCamera;
 
-    IEnumerator checkCarving()
-    {
-        while (true)
+
+        void Start()
         {
-            if (Input.GetKey(KeyCode.Z)) tryCarving(true);
-            if (Input.GetKey(KeyCode.X)) tryCarving(false);
-            yield return new WaitForSeconds(0.05f);
+            _mainCamera = GetComponent<Camera>();
+            StartCoroutine(checkCarving());
         }
-    }
 
-    [SerializeField] private LayerMask _TerrainMask;
-    [SerializeField] private LayerMask _ChunksMask;
-    [SerializeField] private float CarvingSize;
-
-    void tryCarving(bool addRemove)
-    {
-        Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-
-        if (!Physics.Raycast(ray, out RaycastHit hit,1000, _TerrainMask)) return;
-
-        Collider[] cols = Physics.OverlapSphere(hit.point, CarvingSize, _ChunksMask);
-
-        if (cols.Length < 1) return;
-
-        foreach (Collider hitCol in cols)
+        IEnumerator checkCarving()
         {
-            MonoBehaviour[] allScripts = hitCol.transform.parent.gameObject.GetComponentsInChildren<MonoBehaviour>();
-            for (int i = 0; i < allScripts.Length; i++)
+            while (true)
             {
-                if (allScripts[i] is IChunk)
-                {
-                    (allScripts[i] as IChunk).UpdateDensities(hit.point, CarvingSize, addRemove);
-                }
+                if (Input.GetKey(KeyCode.Z)) tryCarving(true);
+                if (Input.GetKey(KeyCode.X)) tryCarving(false);
+                yield return new WaitForSeconds(0.05f);
             }
+        }
 
+        [SerializeField] private LayerMask _TerrainMask;
+        [SerializeField] private LayerMask _ChunksMask;
+        [SerializeField] private float CarvingSize;
+
+        void tryCarving(bool addRemove)
+        {
+            Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+
+            if (!Physics.Raycast(ray, out RaycastHit hit, 1000, _TerrainMask)) return;
+
+            Collider[] cols = Physics.OverlapSphere(hit.point, CarvingSize, _ChunksMask);
+
+            if (cols.Length < 1) return;
+
+            foreach (Collider hitCol in cols)
+            {
+                MonoBehaviour[] allScripts = hitCol.transform.parent.gameObject.GetComponentsInChildren<MonoBehaviour>();
+                for (int i = 0; i < allScripts.Length; i++)
+                {
+                    if (allScripts[i] is IChunk)
+                    {
+                        (allScripts[i] as IChunk).UpdateDensities(hit.point, CarvingSize, addRemove, false);
+                    }
+                }
+
+            }
         }
     }
 }
