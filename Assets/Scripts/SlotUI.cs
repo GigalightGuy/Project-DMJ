@@ -23,6 +23,7 @@ public class SlotUI : MonoBehaviour, IContext
             {
                 m_Locked = value;
                 m_BackgroundImage.color = m_Locked ? m_LockedColor : m_UnlockedColor;
+                m_ItemIconImage.enabled = !value;
             }
         }
     }

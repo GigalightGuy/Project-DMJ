@@ -63,6 +63,8 @@ public class InventoryUI : MonoBehaviour
         for (; i < totalSlotCount; i++)
         {
             m_SlotPool[i].Locked = true;
+            m_SlotPool[i].ItemIcon = null;
+            m_SlotPool[i].ItemCount = 0;
         }
 
         m_IsDirty = false;
