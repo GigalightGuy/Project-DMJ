@@ -786,8 +786,6 @@ MonoBehaviour:
   _terrainSO: {fileID: 11400000, guid: 184fba9efc042cd49a1bd05ae0f76c3a, type: 2}
   _generator: {fileID: 1092399936}
   _marchingCubesCS: {fileID: 7200000, guid: 92335630765f96d4ea72b8e2cba4418e, type: 3}
-  _carvingCS: {fileID: 7200000, guid: c844809558d29e74e949bc34d8502a75, type: 3}
-  _terrainChunks: {x: 8, y: 1, z: 8}
   _debugMaterial: {fileID: 2100000, guid: 882c56d64783c494ca023fd8ce5fe0d1, type: 2}
 --- !u!114 &1092399936
 MonoBehaviour:
