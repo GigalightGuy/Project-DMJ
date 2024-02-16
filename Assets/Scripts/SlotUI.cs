@@ -1,4 +1,7 @@
-﻿using TMPro;
+﻿using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +16,6 @@ public class SlotUI : MonoBehaviour, IContext
     [SerializeField] private TextMeshProUGUI m_CountDisplay;
 
     private bool m_Locked = true;
-
     public bool Locked
     {
         get { return m_Locked; }
@@ -38,7 +40,21 @@ public class SlotUI : MonoBehaviour, IContext
     }
     public int ItemCount { set { m_CountDisplay.text = value > 1 ? value.ToString() : ""; } }
 
-    private ContextOptionConfiguration[] m_TestContextOptions;
+    private InventoryUI m_InventoryUI;
+    public InventoryUI InventoryUI
+    {
+        get => m_InventoryUI;
+        set => m_InventoryUI = value;
+    }
+
+    private int m_Id;
+    public int Id
+    {
+        get => m_Id;
+        set => m_Id = value;
+    }
+
+    private ContextOptionConfiguration[] m_UnlockedSlotContextOptions;
     private ContextOptionConfiguration[] m_LockedSlotContextOptions;
 
     public ContextOptionConfiguration[] GetOptionConfigurations()
@@ -49,32 +65,76 @@ public class SlotUI : MonoBehaviour, IContext
         }
         else
         {
-            return m_TestContextOptions;
+            return FilterContextOptions();
         }
     }
 
     private void Awake()
     {
-        m_TestContextOptions = new ContextOptionConfiguration[3];
+        m_UnlockedSlotContextOptions = new ContextOptionConfiguration[3];
 
-        m_TestContextOptions[0].Text = "Print TEHE";
-        m_TestContextOptions[0].FontColor = Color.white;
-        m_TestContextOptions[0].ClickCallback = () => { Debug.Log("TE HE!!!"); };
+        m_UnlockedSlotContextOptions[0].Text = "Use";
+        m_UnlockedSlotContextOptions[0].FontColor = Color.white;
+        m_UnlockedSlotContextOptions[0].ClickCallback = UseItems;
 
-        m_TestContextOptions[1].Text = "Say hello";
-        m_TestContextOptions[1].FontColor = Color.green;
-        m_TestContextOptions[1].ClickCallback = () => { Debug.Log("Hello World!"); };
+        m_UnlockedSlotContextOptions[1].Text = "Sell";
+        m_UnlockedSlotContextOptions[1].FontColor = Color.yellow;
+        m_UnlockedSlotContextOptions[1].ClickCallback = SellItems;
 
-        m_TestContextOptions[2].Text = "Sell";
-        m_TestContextOptions[2].FontColor = Color.red;
-        m_TestContextOptions[2].ClickCallback = () => { Debug.Log("Sold items!"); };
+        m_UnlockedSlotContextOptions[2].Text = "Equip";
+        m_UnlockedSlotContextOptions[2].FontColor = Color.yellow;
+        m_UnlockedSlotContextOptions[2].ClickCallback = () => { Debug.Log("Item equipped!"); };
+
 
         m_LockedSlotContextOptions = new ContextOptionConfiguration[1];
+
         m_LockedSlotContextOptions[0].Text = "Unlock";
         m_LockedSlotContextOptions[0].FontColor = Color.yellow;
         m_LockedSlotContextOptions[0].ClickCallback = () => { Debug.Log("Unlocked slot!"); };
 
+
         m_BackgroundImage = GetComponent<Image>();
         m_BackgroundImage.color = m_LockedColor;
+    }
+
+    private ContextOptionConfiguration[] FilterContextOptions()
+    {
+        ItemStack stack = m_InventoryUI.AttachedStorage.Stacks[m_Id];
+        ItemContextFlags flags = ItemDatabase.Instance.GetItemData(stack.TypeId).ContextFlags;
+
+        List<ContextOptionConfiguration> filteredOptions = new();
+        int flagBit = 1;
+        foreach (var option in m_UnlockedSlotContextOptions)
+        {
+            if (((int)flags & flagBit) == flagBit)
+            {
+                filteredOptions.Add(option);
+            }
+            flagBit <<= 1;
+        }
+
+        return filteredOptions.ToArray();
+    }
+
+    private void UseItems()
+    {
+        ItemStack stack = m_InventoryUI.AttachedStorage.Stacks[m_Id];
+        UIManager.Instance.ShowCountPopupWindow("Use item(s)", 0, stack.Count, (int x) =>
+        {
+            m_InventoryUI.AttachedStorage.RemoveFromSlot(m_Id, x);
+            int earnedMoney = x * ItemDatabase.Instance.GetItemData(stack.TypeId).SellPrice;
+            ResourcesManager.Instance.Coins += earnedMoney;
+        });
+    }
+
+    private void SellItems()
+    {
+        ItemStack stack = m_InventoryUI.AttachedStorage.Stacks[m_Id];
+        UIManager.Instance.ShowCountPopupWindow("Sell item(s)", 0, stack.Count, (int x) =>
+        {
+            m_InventoryUI.AttachedStorage.RemoveFromSlot(m_Id, x);
+            int earnedMoney = x * ItemDatabase.Instance.GetItemData(stack.TypeId).SellPrice;
+            ResourcesManager.Instance.Coins += earnedMoney;
+        });
     }
 }

@@ -81,7 +81,10 @@ public class InventoryUI : MonoBehaviour
         m_SlotPool = new List<SlotUI>(m_SlotPoolCapacity);
         for (int i = 0; i < m_SlotPoolCapacity; i++)
         {
-            m_SlotPool.Add(Instantiate(m_SlotPrefab, m_SlotsParent).GetComponent<SlotUI>());
+            var slot = Instantiate(m_SlotPrefab, m_SlotsParent).GetComponent<SlotUI>();
+            slot.InventoryUI = this;
+            slot.Id = i;
+            m_SlotPool.Add(slot);
         }
     }
 

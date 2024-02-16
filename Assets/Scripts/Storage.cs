@@ -62,7 +62,7 @@ public class Storage : MonoBehaviour
 
     public int AddItems(int typeId, int count)
     {
-        int maxStackCount = 99;
+        int maxStackCount = ItemDatabase.Instance.GetItemData(typeId).MaxStackCount;
         int remainingCount = count;
         FillStacksOfType(typeId, maxStackCount, ref remainingCount);
         FillEmptySlotsWithType(typeId, maxStackCount, ref remainingCount);
@@ -112,12 +112,16 @@ public class Storage : MonoBehaviour
         m_Stacks[slotId] = stack;
     }
 
-    private void RemoveFromSlot(int slotId, int count)
+    public void RemoveFromSlot(int slotId, int count)
     {
+        if (count < 1) return;
+
         ItemStack stack = m_Stacks[slotId];
         stack.Count -= count;
-        if (stack.Count <= 0) EmptySlot(slotId);
         m_Stacks[slotId] = stack;
+        if (stack.Count <= 0) EmptySlot(slotId);
+
+        Changed?.Invoke();
     }
 
     private void EmptySlot(int slotId)
@@ -126,6 +130,7 @@ public class Storage : MonoBehaviour
         ItemStack stack = m_Stacks[slotId];
         m_TypeStackMap[stack.TypeId].Remove(slotId);
         stack.TypeId = 0;
+        m_Stacks[slotId] = stack;
     }
 }
 

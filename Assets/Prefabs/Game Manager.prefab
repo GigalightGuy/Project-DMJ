@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 6352022897510253235}
   - component: {fileID: 6227555901026095608}
   - component: {fileID: 4367514250020987051}
+  - component: {fileID: 8477937077840492613}
+  - component: {fileID: 5966154774293542571}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -63,8 +65,38 @@ MonoBehaviour:
     SellPrice: 0
     Icon: {fileID: 0}
     MaxStackCount: 0
+    ContextFlags: 0
   - Name: Apple
     Description: You can eat it to refill some energy.
     SellPrice: 5
     Icon: {fileID: 21300000, guid: 14129605e0dae0e49bc3087ca4589df4, type: 3}
-    MaxStackCount: 99
+    MaxStackCount: 20
+    ContextFlags: 3
+--- !u!114 &8477937077840492613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1021299375195604794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b789007ca50de64da51055098f28b6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_gameplayControllerScripts:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+--- !u!114 &5966154774293542571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1021299375195604794}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 459d52cba473bc24cb18d9159cdf8aba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

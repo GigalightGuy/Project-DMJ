@@ -9,6 +9,17 @@ public class ItemDatabase : SingletonBase<ItemDatabase>
     public int GetRegisteredItemsCount() => m_ItemsData.Count;
 }
 
+[System.Flags]
+public enum ItemContextFlags
+{
+    None = 0,
+
+    Use = 1,
+    Sell = 2,
+    Equip = 4,
+
+}
+
 [System.Serializable]
 public struct ItemData
 {
@@ -17,4 +28,5 @@ public struct ItemData
     public int SellPrice;
     public Sprite Icon;
     public int MaxStackCount;
+    public ItemContextFlags ContextFlags;
 }
