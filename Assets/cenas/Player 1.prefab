@@ -238,7 +238,7 @@ MonoBehaviour:
   shootForce: 100
   upwardForce: 0
   timeBetweenShooting: 0.1
-  spread: 0.1
+  spread: 0
   reloadTime: 1.5
   timeBetweenShots: 0
   magazineSize: 100
@@ -246,6 +246,7 @@ MonoBehaviour:
   allowButtonHold: 1
   fpsCam: {fileID: 4079416369751453222}
   attackPoint: {fileID: 5070218153414946409}
+  ammunitionDisplay: {fileID: 0}
   allowInvoke: 1
   leftRightGun: 1
 --- !u!1 &1700124656552671114
@@ -402,7 +403,7 @@ MonoBehaviour:
   shootForce: 100
   upwardForce: 0
   timeBetweenShooting: 0.1
-  spread: 0.1
+  spread: 0
   reloadTime: 1.5
   timeBetweenShots: 0
   magazineSize: 100
@@ -410,6 +411,7 @@ MonoBehaviour:
   allowButtonHold: 1
   fpsCam: {fileID: 4079416369751453222}
   attackPoint: {fileID: 2826718452861168857}
+  ammunitionDisplay: {fileID: 0}
   allowInvoke: 1
   leftRightGun: 0
 --- !u!1 &4875265329127575730
@@ -487,10 +489,10 @@ MonoBehaviour:
   playerCamera: {fileID: 4079416369751453222}
   walkSpeed: 6
   runSpeed: 12
-  jumpForce: 7
-  gravity: 10
+  jumpForce: 12
+  gravity: 6
   lookSpeed: 2
-  lookLimit: 45
+  lookLimit: 90
   canMove: 1
 --- !u!1 &6248318597731607207
 GameObject:
