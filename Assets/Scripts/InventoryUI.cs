@@ -104,11 +104,13 @@ public class InventoryUI : MonoBehaviour
     private void OnStorageOpened()
     {
         m_InventoryCanvas.enabled = true;
+        GameManager.Instance.DisableControllers();
     }
 
     private void OnStorageClosed()
     {
         m_InventoryCanvas.enabled = false;
+        GameManager.Instance.EnableControllers();
     }
 
     private void OnStorageChanged()
