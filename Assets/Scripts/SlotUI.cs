@@ -90,7 +90,7 @@ public class SlotUI : MonoBehaviour, IContext
 
         m_LockedSlotContextOptions[0].Text = "Unlock";
         m_LockedSlotContextOptions[0].FontColor = Color.yellow;
-        m_LockedSlotContextOptions[0].ClickCallback = () => { Debug.Log("Unlocked slot!"); };
+        m_LockedSlotContextOptions[0].ClickCallback = () => UnlockSlots();
 
 
         m_BackgroundImage = GetComponent<Image>();
@@ -135,6 +135,17 @@ public class SlotUI : MonoBehaviour, IContext
             m_InventoryUI.AttachedStorage.RemoveFromSlot(m_Id, x);
             int earnedMoney = x * ItemDatabase.Instance.GetItemData(stack.TypeId).SellPrice;
             ResourcesManager.Instance.Coins += earnedMoney;
+        });
+    }
+
+    private void UnlockSlots()
+    {
+        int unlockCount = m_Id - (m_InventoryUI.AttachedStorage.UnlockedSlotCount - 1);
+        int cost = unlockCount * 50;
+        UIManager.Instance.ShowCheckConditionPopupWindow("Unlock " + unlockCount + " slots?", ResourcesManager.Instance.Coins, cost, () =>
+        {
+            m_InventoryUI.AttachedStorage.UnlockSlots(unlockCount);
+            ResourcesManager.Instance.Coins -= cost;
         });
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -72,6 +73,25 @@ public class Storage : MonoBehaviour
         return remainingCount;
     }
 
+    public void RemoveFromSlot(int slotId, int count)
+    {
+        if (count < 1) return;
+
+        ItemStack stack = m_Stacks[slotId];
+        stack.Count -= count;
+        m_Stacks[slotId] = stack;
+        if (stack.Count <= 0) EmptySlot(slotId);
+
+        Changed?.Invoke();
+    }
+
+    public void UnlockSlots(int count)
+    {
+        m_UnlockedSlotCount += count;
+        m_SlotIds.Grow(count);
+        Changed?.Invoke();
+    }
+
     private void FillStacksOfType(int typeId, int maxStackCount, ref int remainingCount)
     {
         if (!m_TypeStackMap.ContainsKey(typeId)) return;
@@ -110,18 +130,6 @@ public class Storage : MonoBehaviour
         stack.TypeId = typeId;
         stack.Count += increment;
         m_Stacks[slotId] = stack;
-    }
-
-    public void RemoveFromSlot(int slotId, int count)
-    {
-        if (count < 1) return;
-
-        ItemStack stack = m_Stacks[slotId];
-        stack.Count -= count;
-        m_Stacks[slotId] = stack;
-        if (stack.Count <= 0) EmptySlot(slotId);
-
-        Changed?.Invoke();
     }
 
     private void EmptySlot(int slotId)
@@ -169,6 +177,20 @@ public class IdRecyclingSparseSet
         int indexIntoDense = m_Sparse[id];
         m_Dense[indexIntoDense] = lastOccupiedId;
         m_Sparse[lastOccupiedId] = indexIntoDense;
+    }
+
+    public void Grow(int count)
+    {
+        int newCapacity = m_Capacity + count;
+        m_Dense.Capacity = newCapacity;
+        m_Sparse.Capacity = newCapacity;
+
+        for (int i = m_Capacity; i < newCapacity; i++)
+        {
+            m_Dense.Add(i);
+            m_Sparse.Add(i);
+        }
+        m_Capacity = newCapacity;
     }
 
     private List<int> m_Dense;
