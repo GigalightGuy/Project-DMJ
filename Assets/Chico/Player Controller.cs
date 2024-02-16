@@ -6,17 +6,22 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    //Main Camera
     public Camera playerCamera;
+
+    //Player stats
     public float walkSpeed = 6f;
     public float runSpeed = 12f;
     public float jumpForce = 7f;
     public float gravity = 10f;
 
+    //Look sensivity
     public float lookSpeed = 2f;
     public float lookLimit = 45f;
 
     Vector3 moveDirection = Vector3.zero;
     float rotationX = 0;
+
 
     public bool canMove = true;
 
@@ -59,7 +64,7 @@ public class PlayerController : MonoBehaviour
             moveDirection.y -= gravity * Time.deltaTime;
         }
 
-        //Rotation
+        //Rotate
         characterController.Move(moveDirection*Time.deltaTime);
 
         if (canMove)
