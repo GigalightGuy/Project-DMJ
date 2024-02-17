@@ -23,7 +23,7 @@ public class ProjectileGun : MonoBehaviour
     public Camera fpsCam;
     public Transform attackPoint;
 
-    ////UI
+    //UI
     public TextMeshProUGUI ammunitionDisplay;
 
     public bool allowInvoke = true;
@@ -113,14 +113,14 @@ public class ProjectileGun : MonoBehaviour
         bulletsLeft--;
         bulletsShot++;
 
-        //Invoke resetShot function (if not already invoked), with your timeBetweenShooting
+        //Invoke resetShot function (if not already invoked) with timeBetweenShooting
         if (allowInvoke)
         {
             Invoke("ResetShot", timeBetweenShooting);
             allowInvoke = false;
         }
 
-        //if more than one bulletsPerTap make sure to repeat shoot function
+        
         if (bulletsShot < bulletsPerTap && bulletsLeft > 0)
             Invoke("Shoot", timeBetweenShots);
     }
@@ -136,7 +136,7 @@ public class ProjectileGun : MonoBehaviour
     private void Reload()
     {
         reloading = true;
-        Invoke("ReloadFinished", reloadTime); //Invoke ReloadFinished function with your reloadTime as delay
+        Invoke("ReloadFinished", reloadTime); //Invoke ReloadFinished function with reloadTime as delay
     }
 
     private void ReloadFinished()
