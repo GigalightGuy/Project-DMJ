@@ -6,13 +6,14 @@ namespace Terrain.MarchingCubes
 {
     public class ModifyTerrainProjectile : MonoBehaviour
     {
-
+        public static float CarvingSize = 3f;
         [SerializeField] private LayerMask _ChunksMask;
-        [SerializeField] private float CarvingSize;
         [SerializeField] private bool carvingMode;
 
         private void Start()
         {
+            CarvingSize = 3f;
+
             Invoke(nameof(kill), 10);
         }
 

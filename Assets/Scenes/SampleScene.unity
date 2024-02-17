@@ -271,6 +271,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ObjectToSpawn: {fileID: 2181468271448676868, guid: 9786b85883f29574dbbfe656992aa848, type: 3}
+  m_ObjectToSpawn2: {fileID: 2181468271448676868, guid: e6627db0d3148e542b11bf771d3a52a7, type: 3}
 --- !u!4 &488116536
 Transform:
   m_ObjectHideFlags: 0
@@ -1982,6 +1983,38 @@ PrefabInstance:
     - target: {fileID: 1021299375195604794, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
       propertyPath: m_Name
       value: Game Manager
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].Icon
+      value: 
+      objectReference: {fileID: 21300000, guid: 0a1ce7bf86aa8834baab7d975cae70be, type: 3}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].Name
+      value: Beer
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].SellPrice
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[1].Description
+      value: Increases carving radius
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].Description
+      value: Decreases carving radius
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].ContextFlags
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367514250020987051, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
+      propertyPath: m_ItemsData.Array.data[2].MaxStackCount
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6352022897510253235, guid: bcc310632d246fa4f8e10b27a3d3f63e, type: 3}
       propertyPath: m_LocalPosition.x

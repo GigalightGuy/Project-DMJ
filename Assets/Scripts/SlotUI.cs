@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Terrain.MarchingCubes;
 using TMPro;
-using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -122,8 +121,14 @@ public class SlotUI : MonoBehaviour, IContext
         UIManager.Instance.ShowCountPopupWindow("Use item(s)", 0, stack.Count, (int x) =>
         {
             m_InventoryUI.AttachedStorage.RemoveFromSlot(m_Id, x);
-            int earnedMoney = x * ItemDatabase.Instance.GetItemData(stack.TypeId).SellPrice;
-            ResourcesManager.Instance.Coins += earnedMoney;
+            if (stack.TypeId == 1)
+            {
+                ModifyTerrainProjectile.CarvingSize += 1f * x;
+            }
+            else if (stack.TypeId == 2)
+            {
+                ModifyTerrainProjectile.CarvingSize -= 1f * x;
+            }
         });
     }
 
