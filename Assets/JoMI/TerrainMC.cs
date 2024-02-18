@@ -12,24 +12,24 @@ namespace Terrain.MarchingCubes
     {
         const int threadGroupSize = 8;
 
-        Vector3Int _numThreadsPerAxis;
+        private Vector3Int _numThreadsPerAxis;
 
-        [SerializeField] MCTerrainSO _terrainSO;
-        [SerializeField] DensityGenerator _generator;
-        [SerializeField] ComputeShader _marchingCubesCS;
-        [SerializeField] Material _debugMaterial;
+        [SerializeField] private MCTerrainSO _terrainSO;
+        [SerializeField] private DensityGenerator _generator;
+        [SerializeField] private ComputeShader _marchingCubesCS;
+        [SerializeField] private Material _debugMaterial;
 
-        ChunkMesh[] _chunks;
+        private ChunkMesh[] _chunks;
 
-        ComputeBuffer _chunkLocalPointsBuffer;
-        ComputeBuffer _noisePoints;
-        ComputeBuffer _triangleBuffer;
-        ComputeBuffer _triCountBuffer;
+        private ComputeBuffer _chunkLocalPointsBuffer;
+        private ComputeBuffer _triangleBuffer;
+        private ComputeBuffer _triCountBuffer;
+
+       
 
         public ComputeBuffer ChunkLocalPointsBuffer { get => _chunkLocalPointsBuffer; }
         public ComputeBuffer TriangleBuffer { get => _triangleBuffer; set => _triangleBuffer = value; }
         public ComputeBuffer TriCountBuffer { get => _triCountBuffer; set => _triCountBuffer = value; }
-        public ComputeBuffer NoisePoints { get => _noisePoints; set => _noisePoints = value; }
         public MCTerrainSO TerrainSO { get => _terrainSO; }
         public ComputeShader MarchingCubesCS { get => _marchingCubesCS; }
         public DensityGenerator Generator { get => _generator; set => _generator = value; }
@@ -40,17 +40,15 @@ namespace Terrain.MarchingCubes
         {
             CreateBuffers();
 
-            _numThreadsPerAxis = new(
-                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.x / (float)threadGroupSize),
-                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.y / (float)threadGroupSize),
-                Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.z / (float)threadGroupSize)
-                );
-
             CreateLocalChunkPoints();
 
-            _generator.SetComputeShaderDefaultParameters(_chunkLocalPointsBuffer);
-            _generator.SetUpGradientsInformation();
+            NewChunks();
 
+            _generator.SetDensityShader(_chunkLocalPointsBuffer, _numThreadsPerAxis);
+
+            SetChunks();
+
+            UpdateChunksMesh();
 
             void someDebugs()
             {
@@ -64,25 +62,8 @@ namespace Terrain.MarchingCubes
 
             }
             someDebugs();
-
-
-            NewChunks();
-            SetChunks();
-            UpdateChunksMesh();
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                 _generator.SetUpGradientsInformation();
-                CreateLocalChunkPoints();
-                _generator.SetComputeShaderDefaultParameters(_chunkLocalPointsBuffer);
-                _generator.SetUpGradientsInformation();
-                SetChunks();
-                UpdateChunksMesh();
-            }    
-        }
 
         void CreateLocalChunkPoints()
         {
@@ -109,15 +90,16 @@ namespace Terrain.MarchingCubes
         {
             for (int i = transform.childCount - 1; i >= 0; i--) DestroyImmediate(transform.GetChild(i).gameObject);
 
-            int nChunks = _terrainSO.NumChunksPerAxis.x * _terrainSO.NumChunksPerAxis.y * _terrainSO.NumChunksPerAxis.z;
+            int nChunks = _terrainSO.TotalChunks;
             _chunks = new ChunkMesh[nChunks];
 
             for (int c = 0; c < nChunks; c++)
             {
                 GameObject g = new();
-                ChunkMesh chunk = g.AddComponent<ChunkMesh>();
-                g.transform.parent = transform;
                 g.layer = LayerMask.NameToLayer("Terrain");
+                g.transform.parent = transform;
+
+                ChunkMesh chunk = g.AddComponent<ChunkMesh>();
                 chunk.MeshFilter = g.AddComponent<MeshFilter>();
                 chunk.MeshCollider = g.AddComponent<MeshCollider>();
                 _chunks[c] = chunk;
@@ -126,6 +108,7 @@ namespace Terrain.MarchingCubes
                 child.transform.parent = g.transform;
                 child.layer = LayerMask.NameToLayer("Chunk");
                 BoxCollider box = child.AddComponent<BoxCollider>();
+                child.name = "ChunkBoxCollider";
                 box.isTrigger = true;
                 box.center = Vector3.zero;
                 box.size = _terrainSO.BoundsSize;
@@ -150,10 +133,7 @@ namespace Terrain.MarchingCubes
 
         void UpdateChunksMesh()
         {
-            foreach (var chunk in _chunks)
-            {
-                chunk.DrawChunk();
-            }
+            foreach (var chunk in _chunks) chunk.DrawChunk();
         }
 
 
@@ -162,6 +142,11 @@ namespace Terrain.MarchingCubes
 
         private void CreateBuffers()
         {
+            _numThreadsPerAxis = new(
+               Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.x / (float)threadGroupSize),
+               Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.y / (float)threadGroupSize),
+               Mathf.CeilToInt(_terrainSO.NumPointsPerAxis.z / (float)threadGroupSize)
+               );
 
             if (!Application.isPlaying || (_chunkLocalPointsBuffer == null || _terrainSO.TotalPoints != _chunkLocalPointsBuffer.count))
             {
@@ -169,7 +154,6 @@ namespace Terrain.MarchingCubes
                 {
                     ReleaseBuffers();
                 }
-                _noisePoints = new ComputeBuffer(_terrainSO.NumPointsPerAxis.x * _terrainSO.NumPointsPerAxis.z, sizeof(float));
                 _triangleBuffer = new ComputeBuffer(_terrainSO.TotalVoxels * 5, sizeof(float) * 3 * 3, ComputeBufferType.Append);
                 _chunkLocalPointsBuffer = new ComputeBuffer(_terrainSO.TotalPoints, sizeof(float) * 3);
                 _triCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
@@ -177,14 +161,10 @@ namespace Terrain.MarchingCubes
         }
 
         void ReleaseBuffers()
-        {
-            if (_triangleBuffer != null)
-            {
-                _noisePoints.Release();
-                _triangleBuffer.Release();
-                _chunkLocalPointsBuffer.Release();
-                _triCountBuffer.Release();
-            }
+        {  
+            _triangleBuffer?.Release();
+            _chunkLocalPointsBuffer?.Release();
+            _triCountBuffer?.Release();   
         }
 
         private void OnDisable()

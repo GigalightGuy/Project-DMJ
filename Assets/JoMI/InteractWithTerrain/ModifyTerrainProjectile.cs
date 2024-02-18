@@ -35,7 +35,7 @@ namespace Terrain.MarchingCubes
                 {
                     if (allScripts[i] is IChunk)
                     {
-                        (allScripts[i] as IChunk).UpdateDensities(transform.position, CarvingSize, addRemove, false);
+                        (allScripts[i] as IChunk).CarveDensities(transform.position, CarvingSize, addRemove, false);
                     }
                 }
 

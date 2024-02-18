@@ -4,32 +4,30 @@ namespace Terrain.MarchingCubes
 {
     public class ChunkMesh : MonoBehaviour, IChunk
     {
+        private TerrainMC _ctx;
 
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
+
         private Vector3Int _chunkCoord;
+        private ComputeBuffer _densitiesBuffer;
 
         public MeshFilter MeshFilter { get => _meshFilter; set => _meshFilter = value; }
         public Vector3Int ChunkCoord { get => _chunkCoord; set => _chunkCoord = value; }
         public MeshCollider MeshCollider { get => _meshCollider; set => _meshCollider = value; }
 
-        TerrainMC _ctx;
-
-        ComputeBuffer _densitiesBuffer;
-
-   
-
         public void NewChunk(TerrainMC ctx, DensityGenerator generator)
         {
             _ctx = ctx;
             _densitiesBuffer = new ComputeBuffer(_ctx.TerrainSO.TotalPoints, sizeof(float));
-            generator.Generate(_densitiesBuffer, _ctx.ChunkLocalPointsBuffer, _ctx.NoisePoints, _chunkCoord);
+            generator.Generate(_densitiesBuffer, _ctx.ChunkLocalPointsBuffer, _chunkCoord);
         }
 
 
         public void DrawChunk()
         {
             _ctx.TriangleBuffer.SetCounterValue(0);
+
             _ctx.MarchingCubesCS.SetBuffer(0, "points", _ctx.ChunkLocalPointsBuffer);
             _ctx.MarchingCubesCS.SetBuffer(0, "densities", _densitiesBuffer);
             _ctx.MarchingCubesCS.SetBuffer(0, "triangles", _ctx.TriangleBuffer);
@@ -39,8 +37,7 @@ namespace Terrain.MarchingCubes
             _ctx.MarchingCubesCS.SetFloat("isoLevel", _ctx.TerrainSO.IsoLevel);
 
 
-            Vector3Int numThreadsPerAxis = _ctx.NumThreadsPerAxis;
-            _ctx.MarchingCubesCS.Dispatch(0, numThreadsPerAxis.x, numThreadsPerAxis.y, numThreadsPerAxis.z);
+            _ctx.MarchingCubesCS.Dispatch(0, _ctx.NumThreadsPerAxis.x, _ctx.NumThreadsPerAxis.y, _ctx.NumThreadsPerAxis.z);
 
 
             // Get number of triangles in the triangle buffer
@@ -71,10 +68,7 @@ namespace Terrain.MarchingCubes
             _meshCollider.sharedMesh = _meshFilter.sharedMesh;
         }
 
-
-
-
-        public void UpdateDensities(Vector3 pos, float carvingRange, bool addRomove, bool smooth)
+        public void CarveDensities(Vector3 pos, float carvingRange, bool addRomove, bool smooth)
         {
             Vector3 boundsSize = _ctx.TerrainSO.BoundsSize;
             Vector3 carvingPoint = pos - new Vector3(boundsSize.x * _chunkCoord.x, boundsSize.y * _chunkCoord.y, boundsSize.z * _chunkCoord.z);
@@ -85,7 +79,6 @@ namespace Terrain.MarchingCubes
 
             DrawChunk();
         }
-
 
         struct Triangle
         {

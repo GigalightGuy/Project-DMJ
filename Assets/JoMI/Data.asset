@@ -17,4 +17,4 @@ MonoBehaviour:
   noiseResolution: 5.1
   aux: 2
   IsoLevel: 1
-  NumChunksPerAxis: {x: 8, y: 1, z: 8}
+  NumChunksPerAxis: {x: 2, y: 1, z: 2}
