@@ -121,8 +121,6 @@ public class ProjectileGun : MonoBehaviour
         }
 
         
-        if (bulletsShot < bulletsPerTap && bulletsLeft > 0)
-            Invoke("Shoot", timeBetweenShots);
     }
 
 
